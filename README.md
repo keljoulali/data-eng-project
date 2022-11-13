@@ -1,5 +1,5 @@
 # Data engineering project
-## Data engineering : ingestion, staging &amp; production.
+Data engineering : ingestion, staging &amp; production.
 ---
 ### Description
 * This project is data engineering project, involved with recommending movies to users, as well as investigating certain factors contributing to the success of movies.
