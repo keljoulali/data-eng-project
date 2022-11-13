@@ -3,8 +3,8 @@ Data engineering pipeline from scratch  : ingestion, staging &amp; production.
 ---
 Who we are?
 ---
-Two students in data engineering course at INSA Lyon -5IF- last year of computer science engineering degree.
-Pr.[ Riccardo Tommasini](https://riccardotommasini.com/), our instructor in this course gave us the opportunity to put all the skills that we were thought throughout this class.
+Two students in data engineering course at INSA Lyon -5IF- last year of computer science engineering degree [Saad Alahyane](https://www.linkedin.com/in/saad-alahyane-5270a2228/) & [Khalil El joulali](https://www.linkedin.com/in/khalil-el-joulali-6925931b5/).
+Pr.[ Riccardo Tommasini](https://riccardotommasini.com/), our instructor in this course gave us the opportunity to put all the skills that we were thought throughout this class.s
 
 ---
 What is it?
