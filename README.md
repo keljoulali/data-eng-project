@@ -43,7 +43,7 @@ Following the last task given by our professor [Riccardo Tommasini](https://ricc
 >  * Enrich the data by joining multiple datasets into a single one.
 >  * Persist data for durability.
 > * third/fourth pipeline : responsible to move the data from the staging zone into the production zone and trigger the update of data marts (views). 
->  * The production zone is also permanent and data shall be stored to prevent loss.
+>   * The production zone is also permanent and data shall be stored to prevent loss.
 >  * Such pipeline is also responsible to launch the queries implemented according to one of the analytics languages of choice (SQL/Cypher)
 >  * If you are using SQL, the final database should follow the star schema principles
 >  * For the graph database instead it is sufficient to implement the queries.
