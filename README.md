@@ -55,12 +55,13 @@ for that we have chosen the subject of movie recommendation system to design its
 ---
 <img src="others/images/pipeline_physical_all.png">
 ---
-
-### Project's description
-* This project is data engineering project, involved with recommending movies to users, as well as investigating certain factors contributing to the success of movies.
-* The aim of this project, is to perform Extract, Transform, Load, on movies' data, to answer questions the business may have about its users, such as:
-    * What is the highest rated movie of all time?
-    * Which genre of movies is the most popular with users?
-    * Trends in box office earnings - Does release a movie at a certain quarter/month of a year, lead to higher box office earnings?
-    * Which genres are the highest earning of all-time, normalized against a consumer price index?
-    * Happy new year !!!!!
+Where the data come from? and type of the data sources? 
+---
+Data model 
+---
+How to run the project?
+---
+Installation
+---
+Development 
+---
