@@ -22,7 +22,7 @@ This is a full interactive capstone project design and build a data pipeline fro
 
 > Wrangling : [Pandas](https://pandas.pydata.org/)
 
-> Data warehouse & data visualization : [Grafana](https://grafana.com/)
+> Data warehouse & data visualization 
 
 ---
 To whom this project may concern?
@@ -61,7 +61,18 @@ Where the data come from?
 ---
 > * Data sources :
 >   * Data source type 1 : [MovieLens Latest Datasets](https://grouplens.org/datasets/movielens/latest/), [The Movies Dataset](https://www.kaggle.com/datasets/rounakbanik/the-movies-dataset?select=credits.csv)
->   * Data source type 2 : [List of American films from 2018 to 2022](https://en.wikipedia.org/wiki/List_of_American_films_of_2018)
+>   * Data source type 2 : List of American films of [2018](https://en.wikipedia.org/wiki/List_of_American_films_of_2018), [2019](https://en.wikipedia.org/wiki/List_of_American_films_of_2019), [2020](https://en.wikipedia.org/wiki/List_of_American_films_of_2020), [2021](https://en.wikipedia.org/wiki/List_of_American_films_of_2021) & [2022](https://en.wikipedia.org/wiki/List_of_American_films_of_2022)
+---
+Data pipeline design
+---
+> * We use this design in order to answer many questions related to movies, such as :
+>   * What is the highest rated movie of all time?
+>   * Which genre of movies is the most popular with users?
+>   * Trends in box office earnings - Does release a movie at a certain quarter/month of a year, lead to higher box office earnings?
+>   * Which genres are the highest earning of all-time, normalized against a consumer price index?
+
+
+> <img src="others/images/dataPipeDes.png">
 ---
 Data model 
 ---
