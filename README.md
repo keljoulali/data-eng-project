@@ -23,12 +23,14 @@ This is a full interactive capstone project design and build a data pipeline fro
 > Wrangling : [Pandas](https://pandas.pydata.org/)
 
 > Data warehouse & data visualization : [Grafana](https://grafana.com/)
+
 ---
 To whom this project may concern?
 ---
 This project is designed to help students in data science, AI and ML students understand the work of a data engineer,
 to guide learners who want to practice their python,docker, databases, automation and visualization skills, to beginners who want to study data engineering using these materials [Data eng course](https://riccardotommasini.com/teaching/),
 to IT professionals who want to know more about the dataOps world and finally to help every person in this world who is looking for a full data pipeline built from scratch step by step.
+
 ---
 How are we going to design this data Pipeline?
 ---
