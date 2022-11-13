@@ -38,15 +38,15 @@ Following the last task given by our professor [Riccardo Tommasini](https://ricc
 > #### The minimum number of pipelines is 3 :
 > * First pipeline : responsible to bring raw data to the landing zone. Such pipeline is supposed to ingest data from the source identified at first and bring them to a transient storage.
 > * Second pipeline : responsible to migrate raw data from the landing zone and move them into the staging area. In practice, the second pipeline is supposed to
->  * Clean the data according to some simple techniques saw in class 
->  * Wrangle/transform the data according to the analysis needs.
->  * Enrich the data by joining multiple datasets into a single one.
->  * Persist data for durability.
+>   * Clean the data according to some simple techniques saw in class 
+>   * Wrangle/transform the data according to the analysis needs.
+>   * Enrich the data by joining multiple datasets into a single one.
+>   * Persist data for durability.
 > * third/fourth pipeline : responsible to move the data from the staging zone into the production zone and trigger the update of data marts (views). 
 >   * The production zone is also permanent and data shall be stored to prevent loss.
->  * Such pipeline is also responsible to launch the queries implemented according to one of the analytics languages of choice (SQL/Cypher)
->  * If you are using SQL, the final database should follow the star schema principles
->  * For the graph database instead it is sufficient to implement the queries.
+>   * Such pipeline is also responsible to launch the queries implemented according to one of the analytics languages of choice (SQL/Cypher)
+>   * If you are using SQL, the final database should follow the star schema principles
+>   * For the graph database instead it is sufficient to implement the queries.
 
 
 
