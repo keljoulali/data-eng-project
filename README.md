@@ -57,7 +57,7 @@ for that we have chosen the subject of movie recommendation system to design its
 
 
 ---
-Where the data come from? and type of the data sources? 
+Where the data come from?
 ---
 Data model 
 ---
