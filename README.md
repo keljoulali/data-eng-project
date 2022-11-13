@@ -57,9 +57,8 @@ for that we have chosen the subject of movie recommendation system to design its
 
 
 ---
-Where the data come from? 
+Where the data come from?
 ---
-
 Data model 
 ---
 How to run the project?
