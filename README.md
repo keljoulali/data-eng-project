@@ -59,6 +59,10 @@ for that we have chosen the subject of movie recommendation system to design its
 ---
 Where the data come from?
 ---
+> * Data sources :
+>   * Data source type 1 : [MovieLens Latest Datasets](https://grouplens.org/datasets/movielens/latest/)
+>   * Data source type 2 : [The Movies Dataset](https://www.kaggle.com/datasets/rounakbanik/the-movies-dataset?select=credits.csv)
+---
 Data model 
 ---
 How to run the project?
