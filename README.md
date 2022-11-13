@@ -73,6 +73,13 @@ Data pipeline design
 
 
 > <img src="others/images/dataPipeDes.png">
+The process of the data will be work on different steps :
+* Step 1 : extracting data from different sources using MongoDB.
+* Step 2 : Transforming and wrangling data using Pandas.
+* Step 3 : Enrich our datasets with movie ratings
+* Step 4 : Loading and saving the new dataset in Postgres/Neo4j.
+* Step 5 : Running queries to answer the questions previously asked.
+* Step 6 : Data visualization using Grafana/Jupyter notebook.
 ---
 Data model 
 ---
