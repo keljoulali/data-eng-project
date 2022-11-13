@@ -8,3 +8,4 @@ Data engineering : ingestion, staging &amp; production.
     * Which genre of movies are the most popular with users?
     * Trends in box office earnings - Does releasing a movie at a certain quarter/month of a year, lead to higher box office earnings?
     * Which genres are the highest earning of all-time, normalized against a consumer price index?
+    * Happy new year !!!!!
