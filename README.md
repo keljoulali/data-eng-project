@@ -55,6 +55,8 @@ for that we have chosen the subject of movie recommendation system to design its
 ---
 <img src="others/images/pipeline_physical_all.png">
 ---
+
+---
 Where the data come from? and type of the data sources? 
 ---
 Data model 
