@@ -1,7 +1,17 @@
 import airflow
 import datetime
+import urllib.request as request
+import pandas as pd
 from airflow import DAG
 from airflow.operators.bash_operator import BashOperator
+from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
+from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.postgres_operator import PostgresOperator
+import requests
+import random
+import json
+import glob
+
 
 default_args_dict = {
     'start_date': airflow.utils.dates.days_ago(0),
@@ -18,37 +28,65 @@ first_dag = DAG(
 )
 
 # Downloading a file from an API/endpoint?
+def _extract_csv(output_folder : str, url : str):
+    from io import BytesIO
+    from urllib.request import urlopen
+    from zipfile import ZipFile
+    zipurl = url
+    with urlopen(zipurl) as zipresp:
+        with ZipFile(BytesIO(zipresp.read())) as zfile:
+            zfile.extractall(output_folder)
 
-task_one = BashOperator(
-    task_id='get_spreadsheet',
+
+first_node = PythonOperator(
+    task_id='extract_csv',
     dag=first_dag,
-    bash_command="curl https://www.lutemusic.org/spreadsheet.xlsx --output /opt/airflow/dags/{{ds_nodash}}.xlsx",
+    trigger_rule='none_failed',
+    python_callable=_extract_csv,
+    op_kwargs={
+        "output_folder": "/usr/local/airflow/data",
+        "url": "https://files.grouplens.org/datasets/movielens/ml-1m.zip"
+    },
+    depends_on_past=False,
 )
+def _extract_wiki(output_folder : str ):
+    # get data links from wiki
+    link1 = "https://en.wikipedia.org/wiki/List_of_American_films_of_2018"
+    #link2 = "https://en.wikipedia.org/wiki/List_of_American_films_of_2019"
+   # link3 = "https://en.wikipedia.org/wiki/List_of_American_films_of_2020"
+   # link4 = "https://en.wikipedia.org/wiki/List_of_American_films_of_2021"
 
-# oh noes :( it's xlsx... let's make it a csv.
+    df11=pd.read_html(link1, header=0)[2]
+    df12=pd.read_html(link1, header=0)[3]
+    df13=pd.read_html(link1, header=0)[4]
+    df14=pd.read_html(link1, header=0)[5]
 
-task_two = BashOperator(
-    task_id='transmute_to_csv',
+    df1 = df11.append(df12.append(df13.append(df14,ignore_index=true),ignore_index=true),ignore_index=true)
+
+    df1
+
+
+second_node = PythonOperator(
+    task_id='extract_wiki',
     dag=first_dag,
-    bash_command="xlsx2csv /opt/airflow/dags/{{ds_nodash}}.xlsx > /opt/airflow/dags/{{ds_nodash}}_correct.csv",
+    trigger_rule='none_failed',
+    python_callable=_extract_wiki,
+    op_kwargs={
+        "output_folder": "/usr/local/airflow/data"
+    },
+    depends_on_past=False,
 )
+def _ingest_csv() :
 
-task_three = BashOperator(
-    task_id='time_filter',
-    dag=first_dag,
-    bash_command="awk -F, 'int($31) > 1588612377' /opt/airflow/dags/{{ds_nodash}}_correct.csv > /opt/airflow/dags/{{ds_nodash}}_correct_filtered.csv",
-)
 
-task_four = BashOperator(
-    task_id='load',
-    dag=first_dag,
-    bash_command="echo \"done\""
-)
+def _ingest_wiki() :
 
-task_five = BashOperator(
-    task_id='cleanup',
-    dag=first_dag,
-    bash_command="rm /opt/airflow/dags/{{ds_nodash}}_correct.csv /opt/airflow/dags/{{ds_nodash}}_correct_filtered.csv /opt/airflow/dags/{{ds_nodash}}.xlsx",
-)
+def _insert_csv_mongo() :
 
-task_one >> task_two >> task_three >> task_four >> task_five
+def _insert_wiki_mongo() :
+
+def _enrich() :
+first_node
+second_node
+
+
