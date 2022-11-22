@@ -61,6 +61,7 @@ x-airflow-common: &airflow-common
     AIRFLOW__API__AUTH_BACKEND: "airflow.api.auth.backend.basic_auth"
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
   volumes:
+    - ./data:/opt/airflow/data
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
     - ./plugins:/opt/airflow/plugins
@@ -88,6 +89,15 @@ services:
       interval: 5s
       retries: 5
     restart: always
+  mongo:
+    image: mongo
+    ports:
+      - 27017:27017
+      - 27018:27018
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME:
+      MONGO_INITDB_ROOT_PASSWORD:
 
   redis:
     image: redis:latest
