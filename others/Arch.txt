@@ -1,0 +1,53 @@
+Read the data set
+    data_2018 = pd.read_csv('airflow/data/movie2018.csv')
+Replace the NaN values of 'Ref. column by the values from the ^previous column
+    data_2018['Ref.'] = data_2018['Ref.'].fillna(data_2018.pop('.mw-parser-output .tooltip-dotted{border-bottom:1px dotted;cursor:help}Ref.'))
+Rename columns
+    data_2018.rename(columns={'Opening.1': 'Day','Opening':'Month','Ref.':'Ref'})
+
+
+
+
+
+
+        link = "/opt/airflow/data/movie"
+        links = []
+        data_wiki = []
+        dates_list = ["2018.csv", "2019.csv", "2020.csv", "2021.csv"]
+        for i in range(len(dates_list)):
+            links.append(link + dates_list[i])
+        for i in range(len(dates_list)) :
+            data_wiki[i]=pd.read_csv(links[i])
+            data_wiki[i]['Ref.']=data_wiki[i]['Ref.'].fillna(data_wiki[i].pop('.mw-parser-output .tooltip-dotted{border-bottom:1px dotted;cursor:help}Ref.'))
+            data_wiki[i].rename(columns={'Opening.1': 'Day','Opening':'Month','Ref.':'Ref'})
+
+
+    #Read the data set
+    data_2018 = pd.read_csv('/opt/airflow/data/movie2018.csv')
+    data_2019 = pd.read_csv('/opt/airflow/data/movie2019.csv')
+    data_2020 = pd.read_csv('/opt/airflow/data/movie2020.csv')
+    data_2021 = pd.read_csv('/opt/airflow/data/movie2021.csv')
+
+    data_2018.rename(columns={'.mw-parser-output .tooltip-dotted{border-bottom:1px dotted;cursor:help}Ref.' : 'col'})
+    data_2019.rename(columns={'.mw-parser-output .tooltip-dotted{border-bottom:1px dotted;cursor:help}Ref.' : 'col'})
+    data_2020.rename(columns={'.mw-parser-output .tooltip-dotted{border-bottom:1px dotted;cursor:help}Ref.' : 'col'})
+    data_2021.rename(columns={'.mw-parser-output .tooltip-dotted{border-bottom:1px dotted;cursor:help}Ref.' : 'col'})
+    #Replace the NaN values of 'Ref. column by the values from the ^previous column
+    data_2018['Ref.'] = data_2018['Ref.'].fillna(data_2018.pop('col'))
+    data_2019['Ref.'] = data_2019['Ref.'].fillna(data_2019.pop('col'))
+    data_2020['Ref.'] = data_2020['Ref.'].fillna(data_2020.pop('col'))
+    data_2021['Ref.'] = data_2021['Ref.'].fillna(data_2021.pop('col'))
+
+    #Rename columns
+    data_2018.rename(columns={'Opening.1': 'Day','Opening':'Month','Ref.':'Ref'})
+    data_2019.rename(columns={'Opening.1': 'Day','Opening':'Month','Ref.':'Ref'})
+    data_2020.rename(columns={'Opening.1': 'Day','Opening':'Month','Ref.':'Ref'})
+    data_2021.rename(columns={'Opening.1': 'Day','Opening':'Month','Ref.':'Ref'})
+
+
+
+
+
+
+
+

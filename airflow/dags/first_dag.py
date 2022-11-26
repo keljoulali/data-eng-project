@@ -60,15 +60,14 @@ def _extract_wiki():
     link2 = "https://en.wikipedia.org/wiki/List_of_American_films_of_2019"
     link3 = "https://en.wikipedia.org/wiki/List_of_American_films_of_2020"
     link4 = "https://en.wikipedia.org/wiki/List_of_American_films_of_2021"
-
-# data frame 1
+    # data frame 1
     df11=pd.read_html(link1, header=0)[2]
     df12=pd.read_html(link1, header=0)[3]
     df13=pd.read_html(link1, header=0)[4]
     df14=pd.read_html(link1, header=0)[5]
-
+    # dataframes append
     df1 = df11.append(df12.append(df13.append(df14, ignore_index=True), ignore_index=True), ignore_index=True)
-
+    # dataframe to csv save
     df1.to_csv(r'/opt/airflow/data/movie2018.csv', index=False)
     # data frame 2
     df21=pd.read_html(link2, header=0)[2]
@@ -112,7 +111,6 @@ extract_wiki_node = PythonOperator(
 
 def _ingest_csv() :
     from pymongo import MongoClient
-    from random import randint
     import csv
     import warnings
     warnings.filterwarnings('ignore')
@@ -137,7 +135,7 @@ def _ingest_csv() :
     mydb.links_coll.insert_many(row)
     #credits
     csvfile2 = open('/opt/airflow/data/credits.csv','r')
-    reader2 = csv.DictReader( csvfile2 )
+    reader2 = csv.DictReader(csvfile2)
 
     data = pd.read_csv(csvfile2)
     row = data.to_dict('reader2')
@@ -151,14 +149,18 @@ def _ingest_csv() :
     row = data.to_dict('reader3')
 
     mydb.movies_metadata_coll.insert_many(row)
+
+    #connect to mongodb
+
     #ratings
-    csvfile4 = open('/opt/airflow/data/ratings.csv','r')
+    csvfile4 = open('/opt/airflow/data/ratings_small.csv','r')
     reader4  = csv.DictReader( csvfile4 )
 
     data = pd.read_csv(csvfile4)
     row = data.to_dict('reader4')
 
-    mydb.ratings_coll.insert_many(row)
+    mydb.ratings_small_coll.insert_many(row)
+
 
 ingest_csv_node = PythonOperator(
     task_id='ingest_csv',
@@ -235,23 +237,345 @@ ingest_wiki_node = PythonOperator(
     },
     depends_on_past=False,
 )
+def _wrangle_csv() :
+    import pandas as pd
+    import numpy as np
+    #get data from mongoDB
+    movie_metadata_2016 = mongo_df("movies_metadata_coll")
+    credit = mongo_df('credits_coll')
+
+    #get the year of release date
+    movie_metadata_2016['release_date'] = pd.to_datetime(movie_metadata_2016['release_date'], errors='coerce')
+    movie_metadata_2016.rename(columns={'release_date':'date'})
+    meta = movie_metadata_2016.loc[movie_metadata_2016.year <= 2017,['id','title','genres','year']]
+
+    meta['id'] = meta['id'].astype(int)
+
+    data = pd.merge(meta, credit, on='id')
+
+    import ast
+    data['genres'] = data['genres'].map(lambda x: ast.literal_eval(x))
+    data['cast'] = data['cast'].map(lambda x: ast.literal_eval(x))
+    data['crew'] = data['crew'].map(lambda x: ast.literal_eval(x))
+
+    def get_genre(x):
+        gen = []
+        st = " "
+        for i in x:
+            if i.get('name') == 'Science Fiction':
+                scifi = 'Sci-Fi'
+                gen.append(scifi)
+            else:
+                gen.append(i.get('name'))
+        if gen == []:
+            return np.NaN
+        else:
+            return (st.join(gen))
+    data['genre'] = data['genres'].map(lambda x: get_genre(x))
+    data.drop(columns='genres')
+
+    def get_actor1(x):
+        casts = []
+        for i in x:
+            casts.append(i.get('name'))
+        if casts == []:
+            return np.NaN
+        else:
+            return (casts[0])
+
+    data['actor1'] = data['cast'].map(lambda x: get_actor1(x))
+
+    def get_actor2(x):
+        casts = []
+        for i in x:
+            casts.append(i.get('name'))
+        if casts == [] or len(casts)<=1:
+            return np.NaN
+        else:
+            return (casts[1])
+
+    data['actor2'] = data['cast'].map(lambda x: get_actor2(x))
+
+    def get_actor3(x):
+        casts = []
+        for i in x:
+            casts.append(i.get('name'))
+        if casts == [] or len(casts)<=2:
+            return np.NaN
+        else:
+            return (casts[2])
+
+    data['actor3'] = data['cast'].map(lambda x: get_actor3(x))
+
+    def get_directors(x):
+        dt = []
+        st = " "
+        for i in x:
+            if i.get('job') == 'Director':
+                dt.append(i.get('name'))
+        if dt == []:
+            return np.NaN
+        else:
+            return (st.join(dt))
+
+    data['director'] = data['crew'].map(lambda x: get_directors(x))
+
+    new_data = data.loc[:,['title','genre','director','actor_name1','actor2','actor3','year']]
+
+    new_data = new_data.dropna(how='any')
+    print(new_data.head)
 
 
-def mongo_df() :
-    from pymongo import MongoClient
-    from pandas import DataFrame
-    myclient = MongoClient("mongodb://mongo:27017/") #Mongo URI format
-    mydb = myclient["moviedb"]
-    df=DataFrame(list(mydb.movie_coll_2018.find({})))
-    df1=DataFrame(list(mydb.movies_metadata_coll.find({})))
-    print(df1.head())
-    print(df.head())
-
-mongo_nod = PythonOperator(
-    task_id='mongo_df',
+wrangle_csv_node = PythonOperator(
+    task_id='wrangle_csv',
     dag=first_dag,
     trigger_rule='none_failed',
-    python_callable=mongo_df,
+    python_callable=_wrangle_csv,
+    op_kwargs={
+
+    },
+    depends_on_past=False,
+)
+
+def _wrangle_wiki_2018():
+    import pandas as pd
+    import numpy as np
+    data3 = mongo_df('movie_coll_2018')
+    data3['Ref.'] = data3['Ref.'].fillna(data3.pop('.mw-parser-output .tooltip-dotted{border-bottom:1px dotted;cursor:help}Ref.'))
+
+    def get_directors(x):
+        if " (director)" in x:
+            return x.split(" (director)")[0]
+        elif " (directors)" in x:
+            return x.split(" (directors)")[0]
+        else:
+            return x.split(" (director/screenplay)")[0]
+
+    data3['director'] = data3['Cast and crew'].map(lambda x: get_directors(x))
+
+    def get_actor1(x):
+        return ((x.split("screenplay); ")[-1]).split(", ")[0])
+
+    data3['actor1'] = data3['Cast and crew'].map(lambda x: get_actor1(x))
+    def get_actor2(x):
+        if len((x.split("screenplay); ")[-1]).split(", ")) < 2:
+            return np.NaN
+        else:
+            return ((x.split("screenplay); ")[-1]).split(", ")[1])
+    data3['actor2'] = data3['Cast and crew'].map(lambda x: get_actor2(x))
+
+    def get_actor3(x):
+        if len((x.split("screenplay); ")[-1]).split(", ")) < 3:
+            return np.NaN
+        else:
+            return ((x.split("screenplay); ")[-1]).split(", ")[2])
+    data3['actor3'] = data3['Cast and crew'].map(lambda x: get_actor2(x))
+
+    data3 = data3.rename(columns={'Title':'title'})
+    data3['year']='2018'
+    new_data = data3.loc[:,['title','director','actor1','actor2','actor3','year']]
+    d={'JANUARY':'01','FEBRUARY':'02','MARCH':'03','APRIL':'04','MAY':'05','JUNE':'06','JULY':'07','AUGUST':'08','SEPTEMBER':'09','OCTOBER':'10','NOVEMBER':'11','DECEMBER':'12'}
+    new_data['month']=data3['Opening']
+    new_data['day']=data3['Opening.1']
+    new_data['month']=new_data['month'].map(d)
+
+    new_data['year'] = new_data['year'].astype(str)
+    new_data['month'] = new_data['month'].astype(str)
+    new_data['day'] = new_data['day'].astype(str)
+
+    new_data['date']=new_data['day']+'/'+new_data['month']+'/'+new_data['year']
+    new_data['date']=pd.to_datetime(new_data['date'])
+
+    new_data.drop(columns={'year','day','month'})
+wrangle_wiki_2018_node = PythonOperator(
+    task_id='wrangle_wiki_2018',
+    dag=first_dag,
+    trigger_rule='none_failed',
+    python_callable=_wrangle_wiki_2018,
+    op_kwargs={
+
+    },
+    depends_on_past=False,
+)
+
+def _wrangle_wiki_2019():
+    import pandas as pd
+    import numpy as np
+    movie_data_2019 = mongo_df('movie_coll_2019')
+    def get_directors(x):
+        if " (director)" in x:
+            return x.split(" (director)")[0]
+        elif " (directors)" in x:
+            return x.split(" (directors)")[0]
+        else:
+            return x.split(" (director/screenplay)")[0]
+
+    movie_data_2019['director'] = movie_data_2019['Cast and crew'].map(lambda x: get_directors(x))
+
+    def get_actor1(x):
+        return ((x.split("screenplay); ")[-1]).split(", ")[0])
+
+    movie_data_2019['actor1'] = movie_data_2019['Cast and crew'].map(lambda x: get_actor1(x))
+    def get_actor2(x):
+        if len((x.split("screenplay); ")[-1]).split(", ")) < 2:
+            return np.NaN
+        else:
+            return ((x.split("screenplay); ")[-1]).split(", ")[1])
+    movie_data_2019['actor2'] = movie_data_2019['Cast and crew'].map(lambda x: get_actor2(x))
+
+    def get_actor3(x):
+        if len((x.split("screenplay); ")[-1]).split(", ")) < 3:
+            return np.NaN
+        else:
+            return ((x.split("screenplay); ")[-1]).split(", ")[2])
+    movie_data_2019['actor3'] = movie_data_2019['Cast and crew'].map(lambda x: get_actor2(x))
+
+    movie_data_2019 = movie_data_2019.rename(columns={'Title':'title'})
+    movie_data_2019['year']='2018'
+    new_data_2019 = movie_data_2019.loc[:,['title','director','actor1','actor2','actor3','year']]
+    d={'JANUARY':'01','FEBRUARY':'02','MARCH':'03','APRIL':'04','MAY':'05','JUNE':'06','JULY':'07','AUGUST':'08','SEPTEMBER':'09','OCTOBER':'10','NOVEMBER':'11','DECEMBER':'12'}
+    new_data_2019['month']=movie_data_2019['Opening']
+    new_data_2019['day']=movie_data_2019['Opening.1']
+    new_data_2019['month']=new_data_2019['month'].map(d)
+
+    new_data_2019['year'] = new_data_2019['year'].astype(str)
+    new_data_2019['month'] = new_data_2019['month'].astype(str)
+    new_data_2019['day'] = new_data_2019['day'].astype(str)
+
+    new_data_2019['date']=new_data_2019['day']+'/'+new_data_2019['month']+'/'+new_data_2019['year']
+    new_data_2019['date']=pd.to_datetime(new_data_2019['date'])
+
+    new_data_2019.drop(columns={'year','day','month'})
+
+wrangle_wiki_2019_node = PythonOperator(
+    task_id='wrangle_wiki_2019',
+    dag=first_dag,
+    trigger_rule='none_failed',
+    python_callable=_wrangle_wiki_2019,
+    op_kwargs={
+
+    },
+    depends_on_past=False,
+)
+
+def _wrangle_wiki_2020():
+    import pandas as pd
+    import numpy as np
+    movie_data_2020= mongo_df('movie_coll_2020')
+    movie_data_2020['Ref.'] = movie_data_2020['Ref.'].fillna(movie_data_2020.pop('.mw-parser-output .tooltip-dotted{border-bottom:1px dotted;cursor:help}Ref.'))
+
+    def get_directors(x):
+        if " (director)" in x:
+            return x.split(" (director)")[0]
+        elif " (directors)" in x:
+            return x.split(" (directors)")[0]
+        else:
+            return x.split(" (director/screenplay)")[0]
+
+    movie_data_2020['director'] = movie_data_2020['Cast and crew'].map(lambda x: get_directors(x))
+
+    def get_actor1(x):
+        return ((x.split("screenplay); ")[-1]).split(", ")[0])
+
+    movie_data_2020['actor1'] = movie_data_2020['Cast and crew'].map(lambda x: get_actor1(x))
+    def get_actor2(x):
+        if len((x.split("screenplay); ")[-1]).split(", ")) < 2:
+            return np.NaN
+        else:
+            return ((x.split("screenplay); ")[-1]).split(", ")[1])
+    movie_data_2020['actor2'] = movie_data_2020['Cast and crew'].map(lambda x: get_actor2(x))
+
+    def get_actor3(x):
+        if len((x.split("screenplay); ")[-1]).split(", ")) < 3:
+            return np.NaN
+        else:
+            return ((x.split("screenplay); ")[-1]).split(", ")[2])
+    movie_data_2020['actor3'] = movie_data_2020['Cast and crew'].map(lambda x: get_actor2(x))
+
+    movie_data_2020 = movie_data_2020.rename(columns={'Title': 'title'})
+    movie_data_2020['year']= '2018'
+    new_data_2020 = movie_data_2020.loc[:, ['title', 'director', 'actor1', 'actor2', 'actor3', 'year']]
+    d={'JANUARY':'01','FEBRUARY':'02','MARCH':'03','APRIL':'04','MAY':'05','JUNE':'06','JULY':'07','AUGUST':'08','SEPTEMBER':'09','OCTOBER':'10','NOVEMBER':'11','DECEMBER':'12'}
+    new_data_2020['month']=movie_data_2020['Opening']
+    new_data_2020['day']=movie_data_2020['Opening.1']
+    new_data_2020['month']=new_data_2020['month'].map(d)
+
+    new_data_2020['year'] = new_data_2020['year'].astype(str)
+    new_data_2020['month'] = new_data_2020['month'].astype(str)
+    new_data_2020['day'] = new_data_2020['day'].astype(str)
+
+    new_data_2020['date']=new_data_2020['day']+'/'+new_data_2020['month']+'/'+new_data_2020['year']
+    new_data_2020['date']=pd.to_datetime(new_data_2020['date'])
+
+    new_data_2020.drop(columns={'year','day','month'})
+
+wrangle_wiki_2020_node = PythonOperator(
+    task_id='wrangle_wiki_2020',
+    dag=first_dag,
+    trigger_rule='none_failed',
+    python_callable=_wrangle_wiki_2020,
+    op_kwargs={
+
+    },
+    depends_on_past=False,
+)
+
+def _wrangle_wiki_2021():
+    import pandas as pd
+    import numpy as np
+    movie_data_2021 = mongo_df('movie_coll_2021')
+    movie_data_2021['Ref.'] = movie_data_2021['Ref.'].fillna(movie_data_2021.pop('.mw-parser-output .tooltip-dotted{border-bottom:1px dotted;cursor:help}Ref.'))
+
+    def get_directors(x):
+        if " (director)" in x:
+            return x.split(" (director)")[0]
+        elif " (directors)" in x:
+            return x.split(" (directors)")[0]
+        else:
+            return x.split(" (director/screenplay)")[0]
+
+    movie_data_2021['director'] = movie_data_2021['Cast and crew'].map(lambda x: get_directors(x))
+
+    def get_actor1(x):
+        return ((x.split("screenplay); ")[-1]).split(", ")[0])
+
+    movie_data_2021['actor1'] = movie_data_2021['Cast and crew'].map(lambda x: get_actor1(x))
+    def get_actor2(x):
+        if len((x.split("screenplay); ")[-1]).split(", ")) < 2:
+            return np.NaN
+        else:
+            return ((x.split("screenplay); ")[-1]).split(", ")[1])
+    movie_data_2021['actor2'] = movie_data_2021['Cast and crew'].map(lambda x: get_actor2(x))
+
+    def get_actor3(x):
+        if len((x.split("screenplay); ")[-1]).split(", ")) < 3:
+            return np.NaN
+        else:
+            return ((x.split("screenplay); ")[-1]).split(", ")[2])
+    movie_data_2021['actor3'] = movie_data_2021['Cast and crew'].map(lambda x: get_actor2(x))
+
+    movie_data_2021 = movie_data_2021.rename(columns={'Title':'title'})
+    movie_data_2021['year']='2018'
+    new_data_2021 = movie_data_2021.loc[:,['title','director','actor1','actor2','actor3','year']]
+    d={'JANUARY':'01','FEBRUARY':'02','MARCH':'03','APRIL':'04','MAY':'05','JUNE':'06','JULY':'07','AUGUST':'08','SEPTEMBER':'09','OCTOBER':'10','NOVEMBER':'11','DECEMBER':'12'}
+    new_data_2021['month']=movie_data_2021['Opening']
+    new_data_2021['day']=movie_data_2021['Opening.1']
+    new_data_2021['month']=new_data_2021['month'].map(d)
+
+    new_data_2021['year'] = new_data_2021['year'].astype(str)
+    new_data_2021['month'] = new_data_2021['month'].astype(str)
+    new_data_2021['day'] = new_data_2021['day'].astype(str)
+
+    new_data_2021['date']=new_data_2021['day']+'/'+new_data_2021['month']+'/'+new_data_2021['year']
+    new_data_2021['date']=pd.to_datetime(new_data_2021['date'])
+
+    new_data_2021.drop(columns={'year','day','month'})
+
+wrangle_wiki_2021_node = PythonOperator(
+    task_id='wrangle_wiki_2021',
+    dag=first_dag,
+    trigger_rule='none_failed',
+    python_callable=_wrangle_wiki_2021,
     op_kwargs={
 
     },
@@ -259,7 +583,16 @@ mongo_nod = PythonOperator(
 )
 
 
+def mongo_df(collection) :
+    from pymongo import MongoClient
+    from pandas import DataFrame
+    myclient = MongoClient("mongodb://mongo:27017/") #Mongo URI format
+    mydb = myclient["moviedb"]
+    cursor = mydb[collection].find({})
+    df = pd.DataFrame(list(cursor))
+    return df
 
-[extract_csv_node >>ingest_csv_node , extract_wiki_node >> ingest_wiki_node ] >> mongo_nod
 
 
+extract_csv_node >>ingest_csv_node>>wrangle_csv_node
+extract_wiki_node >> ingest_wiki_node >>[wrangle_wiki_2018_node,wrangle_wiki_2019_node,wrangle_wiki_2020_node, wrangle_wiki_2021_node]
