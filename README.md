@@ -83,17 +83,16 @@ The process of the data will be work on different steps :
 ---
 Data model 
 ---
-How to run the project?
----
-## Requirements
+### How to run the project?
+#### Requirements
 
 * To have docker *and* docker-compose installed.
 * Install docker and docker-compose exactly as it is described in the website.
 * **do not do do apt install docker or docker-compose**
 
-## How to spin the webserver up
+### How to spin the webserver up
 
-### Prepping
+#### Prepping
 
 First, get your **id**:
 ```sh
@@ -113,7 +112,7 @@ docker-compose up airflow-init
 ```
 If the exit code is 0 then it's all good.
 
-### Running
+#### Running
 
 ```sh
 docker-compose up
