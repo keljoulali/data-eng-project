@@ -83,6 +83,11 @@ The process of the data will be work on different steps :
 ---
 Data model 
 ---
+Movies data model from Kaggle API :
+> <img src="others/images/dataPipeDes.png">
+
+Star Schema for the final data ready to be loaded in Postgres or Neo4j :
+> <img src="others/images/starSchema.png">
 ### How to run the project?
 #### Requirements
 
@@ -126,5 +131,5 @@ After it is up, add a new connection:
 * Port - 5432
 * Database - airflow
 * Username - airflow
-* Password - airflow
+* Password - 
 

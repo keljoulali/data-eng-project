@@ -28,6 +28,11 @@ first_dag = DAG(
     template_searchpath=['/opt/airflow/data']
 )
 
+start_node = DummyOperator(
+    task_id='start',
+    dag=first_dag,
+    trigger_rule='none_failed'
+)
 # Downloading a file from an API/endpoint?
 def _extract_csv(output_folder : str):
     import opendatasets as od
@@ -248,7 +253,6 @@ def mongo_df(collection) :
     return df
 
 
-
 def _wrangle_mongo() :
     import pandas as pd
     #get data from mongoDB
@@ -393,6 +397,7 @@ def _wrangle_wiki_2018():
         if " (director)" in x:
             return x.split(" (director)")[0]
         elif " (directors)" in x:
+
             return x.split(" (directors)")[0]
         else:
             return x.split(" (director/screenplay)")[0]
@@ -891,5 +896,11 @@ postgres_insert2_node = PostgresOperator(
 
 )
 
-[extract_csv_node >>ingest_csv_node>>wrangle_mongo_node>>wrangle_csv_node >>enrich_csv_node , extract_wiki_node >> ingest_wiki_node >>[wrangle_wiki_2018_node,wrangle_wiki_2019_node,wrangle_wiki_2020_node, wrangle_wiki_2021_node] >> merge_wiki_node>>enrich_wiki_node]>>merge_all_node>>create_insert_tables_node >>postgres_insert_node>> insert_tables_node>>postgres_insert2_node
+end_node = DummyOperator(
+    task_id='end',
+    dag=first_dag,
+    trigger_rule='none_failed'
+)
+
+[start_node>>extract_csv_node >>ingest_csv_node>>wrangle_mongo_node>>wrangle_csv_node >>enrich_csv_node , start_node>>extract_wiki_node >> ingest_wiki_node >>[wrangle_wiki_2018_node,wrangle_wiki_2019_node,wrangle_wiki_2020_node, wrangle_wiki_2021_node] >> merge_wiki_node>>enrich_wiki_node]>>merge_all_node>>create_insert_tables_node >>postgres_insert_node>> insert_tables_node>>postgres_insert2_node >> end_node
 
