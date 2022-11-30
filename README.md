@@ -84,10 +84,11 @@ The process of the data will be work on different steps :
 Data model 
 ---
 Movies data model from Kaggle API :
-> <img src="others/images/dataModel.png">
+> <img src="others/images/dataModel1.png">
 
 Star Schema for the final data ready to be loaded in Postgres or Neo4j :
-> <img src="others/images/starSchema.png">
+> <img src="others/images/starSchema1.png">
+
 ### How to run the project?
 #### Requirements
 
