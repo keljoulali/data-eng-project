@@ -4,7 +4,7 @@ Data engineering pipeline from scratch  : ingestion, staging &amp; production.
 Who we are?
 ---
 Two students in data engineering course at INSA Lyon -5IF- last year of computer science engineering degree [Saad Alahyane](https://www.linkedin.com/in/saad-alahyane-5270a2228/) & [Khalil El joulali](https://www.linkedin.com/in/khalil-el-joulali-6925931b5/).
-Pr.[ Riccardo Tommasini](https://riccardotommasini.com/), our instructor in this course gave us the opportunity to put all the skills that we were thought throughout this class.s
+Pr.[ Riccardo Tommasini](https://riccardotommasini.com/), our instructor in this course gave us the opportunity to put all the skills that we were thought throughout this class.
 
 ---
 What is it?
@@ -85,7 +85,47 @@ Data model
 ---
 How to run the project?
 ---
-Installation
----
-Development 
----
+## Requirements
+
+* To have docker *and* docker-compose installed.
+* Install docker and docker-compose exactly as it is described in the website.
+* **do not do do apt install docker or docker-compose**
+
+## How to spin the webserver up
+
+### Prepping
+
+First, get your **id**:
+```sh
+id -u
+```
+
+Now edit the **.env** file and swap out 501 for your own.
+
+Run the following command to creat the volumes needed in order to send data to airflow:
+```sh
+mkdir -p ./dags ./logs ./plugins
+```
+
+And this **once**:
+```sh
+docker-compose up airflow-init
+```
+If the exit code is 0 then it's all good.
+
+### Running
+
+```sh
+docker-compose up
+```
+
+After it is up, add a new connection:
+
+* Name - postgres_local
+* Conn type - postgres
+* Host - postgres
+* Port - 5432
+* Database - airflow
+* Username - airflow
+* Password - airflow
+
